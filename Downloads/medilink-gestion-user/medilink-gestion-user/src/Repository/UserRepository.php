@@ -35,6 +35,23 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
+     * Utilisateurs patients (ROLE_PATIENT ou sans ROLE_MEDECIN/ROLE_ADMIN).
+     *
+     * @return User[]
+     */
+    public function findPatients(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.roles NOT LIKE :medecin')
+            ->andWhere('u.roles NOT LIKE :admin')
+            ->setParameter('medecin', '%ROLE_MEDECIN%')
+            ->setParameter('admin', '%ROLE_ADMIN%')
+            ->orderBy('u.fullName', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Used to upgrade (rehash) the user's password automatically over time.
      */
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void

@@ -34,6 +34,14 @@
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-title">Gestion médicale</div>
+      <a href="{{ path('admin_medicaments_index') }}" class="{% if app.request.attributes.get('_route') starts with 'admin_medicaments' %}active{% endif %}">
+        <i class="fa-solid fa-pills"></i>
+        <span>Médicaments</span>
+      </a>
+      <a href="{{ path('admin_ordonnances_index') }}" class="{% if app.request.attributes.get('_route') starts with 'admin_ordonnances' %}active{% endif %}">
+        <i class="fa-solid fa-file-prescription"></i>
+        <span>Ordonnances</span>
+      </a>
       <a href="{{ path('admin_rendezvous_index') }}" class="{% if app.request.attributes.get('_route') starts with 'admin_rendezvous' %}active{% endif %}">
         <i class="fa-solid fa-calendar-check"></i>
         <span>Rendez-vous</span>
