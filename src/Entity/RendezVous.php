@@ -31,7 +31,7 @@ class RendezVous
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $dateHeure = null;
 
-    #[ORM\Column(length: 20)]
+    #[ORM\Column(length: 20, name: 'status')]
     private string $statut = self::STATUT_EN_ATTENTE;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]

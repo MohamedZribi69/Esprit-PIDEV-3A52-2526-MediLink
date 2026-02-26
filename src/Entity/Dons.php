@@ -22,7 +22,7 @@ class Dons
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: CategoriesDons::class, inversedBy: 'dons')]
     #[ORM\JoinColumn(nullable: false, name: 'categorie_id', referencedColumnName: 'id')]
     #[Assert\NotNull(message: 'La catégorie est obligatoire.')]
     private ?CategoriesDons $categorie = null;
