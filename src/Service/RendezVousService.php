@@ -6,6 +6,7 @@ use App\Entity\Disponibilite;
 use App\Entity\RendezVous;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Logique métier du module Rendez-vous.
@@ -14,7 +15,9 @@ use Doctrine\ORM\EntityManagerInterface;
 final class RendezVousService
 {
     public function __construct(
-        private EntityManagerInterface $em
+        private EntityManagerInterface $em,
+        private RendezVousMailerService $mailerService,
+        private ?LoggerInterface $logger = null
     ) {
     }
 
@@ -58,6 +61,17 @@ final class RendezVousService
 
         $this->em->persist($rdv);
         $this->em->flush();
+
+        try {
+            $this->mailerService->envoyerConfirmationRendezVous($rdv);
+        } catch (\Throwable $e) {
+            if ($this->logger) {
+                $this->logger->warning('Impossible d\'envoyer l\'email de confirmation du rendez-vous.', [
+                    'rdv_id' => $rdv->getId(),
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         return $rdv;
     }

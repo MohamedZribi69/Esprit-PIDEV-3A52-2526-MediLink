@@ -136,6 +136,14 @@ class DisponibiliteRepository extends ServiceEntityRepository
      */
     public function searchByMedecin(\App\Entity\User $medecin, ?string $statut, ?string $ordre = 'asc'): array
     {
+        return $this->getSearchByMedecinQueryBuilder($medecin, $statut, $ordre)->getQuery()->getResult();
+    }
+
+    /**
+     * QueryBuilder pour searchByMedecin (pagination).
+     */
+    public function getSearchByMedecinQueryBuilder(\App\Entity\User $medecin, ?string $statut, ?string $ordre = 'asc'): \Doctrine\ORM\QueryBuilder
+    {
         $qb = $this->createQueryBuilder('d')
             ->andWhere('d.medecin = :medecin')
             ->setParameter('medecin', $medecin);
@@ -149,6 +157,6 @@ class DisponibiliteRepository extends ServiceEntityRepository
             ->addOrderBy('d.heureDebut', $orderDir)
             ->addOrderBy('d.id', $orderDir);
 
-        return $qb->getQuery()->getResult();
+        return $qb;
     }
 }

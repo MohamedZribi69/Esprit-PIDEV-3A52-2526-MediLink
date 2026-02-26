@@ -4,7 +4,9 @@ namespace App\Controller\Admin;
 
 use App\Entity\Disponibilite;
 use App\Repository\DisponibiliteRepository;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -16,19 +18,24 @@ use Symfony\Component\Routing\Annotation\Route;
 final class DisponibiliteAdminController extends AbstractController
 {
     #[Route('', name: 'admin_disponibilites_index')]
-    public function index(DisponibiliteRepository $repo): Response
+    public function index(Request $request, DisponibiliteRepository $repo, PaginatorInterface $paginator): Response
     {
-        $disponibilites = $repo->createQueryBuilder('d')
+        $queryBuilder = $repo->createQueryBuilder('d')
             ->leftJoin('d.medecin', 'm')->addSelect('m')
             ->orderBy('d.date', 'ASC')
             ->addOrderBy('d.heureDebut', 'ASC')
-            ->addOrderBy('d.id', 'ASC')
-            ->getQuery()
-            ->getResult();
+            ->addOrderBy('d.id', 'ASC');
+
+        $pagination = $paginator->paginate(
+            $queryBuilder,
+            $request->query->getInt('page', 1),
+            15
+        );
+
         $statutsLabels = array_flip(Disponibilite::getStatuts());
 
         return $this->render('admin/disponibilite/index.html.twig', [
-            'disponibilites' => $disponibilites,
+            'pagination' => $pagination,
             'statutsLabels' => $statutsLabels,
         ]);
     }

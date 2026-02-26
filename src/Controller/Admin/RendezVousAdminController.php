@@ -8,6 +8,7 @@ use App\Repository\DisponibiliteRepository;
 use App\Repository\RendezVousRepository;
 use App\Service\RendezVousService;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,17 +18,23 @@ use Symfony\Component\Routing\Annotation\Route;
 final class RendezVousAdminController extends AbstractController
 {
     #[Route('', name: 'admin_rendezvous_index')]
-    public function index(Request $request, RendezVousRepository $repo): Response
+    public function index(Request $request, RendezVousRepository $repo, PaginatorInterface $paginator): Response
     {
         $q = (string) $request->query->get('q', '');
         $statut = $request->query->get('statut');
         $ordre = $request->query->get('ordre', 'desc');
 
-        $rendezVous = $repo->search($q, $statut, $ordre);
+        $queryBuilder = $repo->getSearchQueryBuilder($q, $statut, $ordre);
+        $pagination = $paginator->paginate(
+            $queryBuilder,
+            $request->query->getInt('page', 1),
+            15
+        );
+
         $statutsLabels = array_flip(RendezVous::getStatuts());
 
         return $this->render('admin/rendezvous/index.html.twig', [
-            'rendezVous' => $rendezVous,
+            'pagination' => $pagination,
             'filters' => ['q' => $q, 'statut' => $statut, 'ordre' => $ordre],
             'statuts' => RendezVous::getStatuts(),
             'statutsLabels' => $statutsLabels,

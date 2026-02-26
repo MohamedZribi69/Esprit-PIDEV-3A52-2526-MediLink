@@ -41,7 +41,7 @@
 
   <h3 style="margin: 40px 0 16px; color: var(--primary-color);"><i class="fa-solid fa-list"></i> Mes rendez-vous</h3>
 
-  {% if mesRendezVous is empty %}
+  {% if paginationRdv.totalItemCount == 0 %}
     <p class="hint">Vous n'avez pas encore de rendez-vous.</p>
   {% else %}
     <div class="table-container">
@@ -55,7 +55,7 @@
           </tr>
         </thead>
         <tbody>
-          {% for r in mesRendezVous %}
+          {% for r in paginationRdv %}
             <tr>
               <td>{{ r.disponibilite.medecin ? r.disponibilite.medecin.fullName : '-' }}</td>
               <td>{{ r.dateHeure|date('d/m/Y H:i') }}</td>
@@ -77,6 +77,9 @@
           {% endfor %}
         </tbody>
       </table>
+    </div>
+    <div class="d-flex justify-content-center mt-3">
+      {{ knp_pagination_render(paginationRdv) }}
     </div>
   {% endif %}
 </section>

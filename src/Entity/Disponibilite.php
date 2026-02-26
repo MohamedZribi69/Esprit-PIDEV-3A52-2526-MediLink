@@ -3,11 +3,15 @@
 namespace App\Entity;
 
 use App\Repository\DisponibiliteRepository;
+use App\Validator\CreneauUnique;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: DisponibiliteRepository::class)]
 #[ORM\Table(name: 'disponibilites')]
+#[CreneauUnique]
 class Disponibilite
 {
     public const STATUS_LIBRE = 'libre';
@@ -44,6 +48,24 @@ class Disponibilite
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
+    }
+
+    #[Assert\Callback]
+    public function validateHeuresEtDate(ExecutionContextInterface $context): void
+    {
+        if ($this->heureDebut !== null && $this->heureFin !== null && $this->heureFin <= $this->heureDebut) {
+            $context->buildViolation('L\'heure de fin doit être postérieure à l\'heure de début.')
+                ->atPath('heureFin')
+                ->addViolation();
+        }
+        if ($this->date !== null && $this->id === null) {
+            $today = (new \DateTimeImmutable('today'))->format('Y-m-d');
+            if ($this->date->format('Y-m-d') < $today) {
+                $context->buildViolation('La date doit être aujourd\'hui ou une date future.')
+                    ->atPath('date')
+                    ->addViolation();
+            }
+        }
     }
 
     public function getId(): ?int

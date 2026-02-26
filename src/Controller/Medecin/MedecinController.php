@@ -9,6 +9,7 @@ use App\Repository\DisponibiliteRepository;
 use App\Repository\RendezVousRepository;
 use App\Service\DisponibiliteService;
 use App\Service\RendezVousService;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class MedecinController extends AbstractController
 {
     #[Route('', name: 'medecin_index')]
-    public function index(Request $request, DisponibiliteRepository $repo, RendezVousRepository $rdvRepo): Response
+    public function index(Request $request, DisponibiliteRepository $repo, RendezVousRepository $rdvRepo, PaginatorInterface $paginator): Response
     {
         $medecin = $this->getUser();
         $q = (string) $request->query->get('q', '');
@@ -29,14 +30,22 @@ final class MedecinController extends AbstractController
         $statutDispo = $request->query->get('statut_dispo');
         $ordreDispo = $request->query->get('ordre_dispo', 'asc');
 
-        $mesRendezVous = $rdvRepo->searchByMedecin($medecin, $q, $statutRdv, $ordreRdv);
-        $disponibilites = $repo->searchByMedecin($medecin, $statutDispo, $ordreDispo);
+        $qbRdv = $rdvRepo->getSearchByMedecinQueryBuilder($medecin, $q, $statutRdv, $ordreRdv);
+        $paginationRdv = $paginator->paginate($qbRdv, $request->query->getInt('page_rdv', 1), 10, [
+            'pageParameterName' => 'page_rdv',
+        ]);
+
+        $qbDispo = $repo->getSearchByMedecinQueryBuilder($medecin, $statutDispo, $ordreDispo);
+        $paginationDispo = $paginator->paginate($qbDispo, $request->query->getInt('page_dispo', 1), 10, [
+            'pageParameterName' => 'page_dispo',
+        ]);
+
         $statutsLabels = array_flip(Disponibilite::getStatuts());
         $statutsRdvLabels = array_flip(RendezVous::getStatuts());
 
         return $this->render('medecin/index.html.twig', [
-            'disponibilites' => $disponibilites,
-            'mesRendezVous' => $mesRendezVous,
+            'paginationRdv' => $paginationRdv,
+            'paginationDispo' => $paginationDispo,
             'statutsLabels' => $statutsLabels,
             'statutsRdvLabels' => $statutsRdvLabels,
             'filters' => [

@@ -58,6 +58,14 @@ class RendezVousRepository extends ServiceEntityRepository
      */
     public function search(?string $q, ?string $statut, ?string $ordre = 'desc'): array
     {
+        return $this->getSearchQueryBuilder($q, $statut, $ordre)->getQuery()->getResult();
+    }
+
+    /**
+     * QueryBuilder pour la recherche (pour pagination).
+     */
+    public function getSearchQueryBuilder(?string $q, ?string $statut, ?string $ordre = 'desc'): \Doctrine\ORM\QueryBuilder
+    {
         $qb = $this->createQueryBuilder('r')
             ->leftJoin('r.disponibilite', 'd')->addSelect('d')
             ->leftJoin('d.medecin', 'dm')->addSelect('dm')
@@ -76,7 +84,7 @@ class RendezVousRepository extends ServiceEntityRepository
         $orderDir = ($ordre === 'asc') ? 'ASC' : 'DESC';
         $qb->orderBy('r.dateHeure', $orderDir)->addOrderBy('r.id', $orderDir);
 
-        return $qb->getQuery()->getResult();
+        return $qb;
     }
 
     /**
@@ -103,6 +111,14 @@ class RendezVousRepository extends ServiceEntityRepository
      */
     public function searchByMedecin(User $medecin, ?string $q = '', ?string $statut = null, ?string $ordre = 'desc'): array
     {
+        return $this->getSearchByMedecinQueryBuilder($medecin, $q, $statut, $ordre)->getQuery()->getResult();
+    }
+
+    /**
+     * QueryBuilder pour searchByMedecin (pagination).
+     */
+    public function getSearchByMedecinQueryBuilder(User $medecin, ?string $q = '', ?string $statut = null, ?string $ordre = 'desc'): \Doctrine\ORM\QueryBuilder
+    {
         $qb = $this->createQueryBuilder('r')
             ->leftJoin('r.disponibilite', 'd')->addSelect('d')
             ->leftJoin('r.patient', 'p')->addSelect('p')
@@ -122,7 +138,7 @@ class RendezVousRepository extends ServiceEntityRepository
         $orderDir = ($ordre === 'asc') ? 'ASC' : 'DESC';
         $qb->orderBy('r.dateHeure', $orderDir)->addOrderBy('r.id', $orderDir);
 
-        return $qb->getQuery()->getResult();
+        return $qb;
     }
 
     /**
@@ -132,13 +148,20 @@ class RendezVousRepository extends ServiceEntityRepository
      */
     public function findByPatient(User $patient): array
     {
+        return $this->getFindByPatientQueryBuilder($patient)->getQuery()->getResult();
+    }
+
+    /**
+     * QueryBuilder pour findByPatient (pagination).
+     */
+    public function getFindByPatientQueryBuilder(User $patient): \Doctrine\ORM\QueryBuilder
+    {
         return $this->createQueryBuilder('r')
             ->leftJoin('r.disponibilite', 'd')->addSelect('d')
             ->leftJoin('d.medecin', 'dm')->addSelect('dm')
             ->andWhere('r.patient = :patient')
             ->setParameter('patient', $patient)
             ->orderBy('r.dateHeure', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->addOrderBy('r.id', 'DESC');
     }
 }

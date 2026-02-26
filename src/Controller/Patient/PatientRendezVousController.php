@@ -7,6 +7,7 @@ use App\Entity\RendezVous;
 use App\Repository\DisponibiliteRepository;
 use App\Repository\RendezVousRepository;
 use App\Service\RendezVousService;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,16 +19,19 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class PatientRendezVousController extends AbstractController
 {
     #[Route('/rendez-vous', name: 'patient_rendezvous_index')]
-    public function index(DisponibiliteRepository $dispoRepo, RendezVousRepository $rvRepo): Response
+    public function index(Request $request, DisponibiliteRepository $dispoRepo, RendezVousRepository $rvRepo, PaginatorInterface $paginator): Response
     {
         $patient = $this->getUser();
         $disponibilites = $dispoRepo->findLibresAvenirAvecMedecin();
-        $mesRendezVous = $rvRepo->findByPatient($patient);
+
+        $qbRdv = $rvRepo->getFindByPatientQueryBuilder($patient);
+        $paginationRdv = $paginator->paginate($qbRdv, $request->query->getInt('page', 1), 10);
+
         $statutsLabels = array_flip(RendezVous::getStatuts());
 
         return $this->render('patient/rendezvous_index.html.twig', [
             'disponibilites' => $disponibilites,
-            'mesRendezVous' => $mesRendezVous,
+            'paginationRdv' => $paginationRdv,
             'statutsLabels' => $statutsLabels,
         ]);
     }
