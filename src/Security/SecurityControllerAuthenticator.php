@@ -60,9 +60,9 @@ public function onAuthenticationSuccess(Request $request, TokenInterface $token,
         }
     }
 
-    // Patient ou autre : accueil du site ou espace patient
+    // Patient ou autre : redirection vers le front public
     if (method_exists($user, 'getRoles') && in_array('ROLE_USER', $user->getRoles(), true)) {
-        return new RedirectResponse($this->urlGenerator->generate('patient_rendezvous_index'));
+        return new RedirectResponse('http://127.0.0.1:8001/?mode=public');
     }
     return new RedirectResponse($this->urlGenerator->generate('front_home'));
 }

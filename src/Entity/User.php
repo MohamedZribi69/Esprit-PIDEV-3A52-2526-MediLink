@@ -42,7 +42,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 20)]
     #[Assert\Choice([self::STATUS_ACTIVE, self::STATUS_DISABLED])]
-    private string $status = self::STATUS_ACTIVE;
+    private string $status = self::STATUS_DISABLED;
+
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $verificationToken = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
@@ -92,6 +95,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setStatus(string $status): self { $this->status = $status; return $this; }
 
     public function isActive(): bool { return $this->status === self::STATUS_ACTIVE; }
+
+    public function getVerificationToken(): ?string
+    {
+        return $this->verificationToken;
+    }
+
+    public function setVerificationToken(?string $verificationToken): self
+    {
+        $this->verificationToken = $verificationToken;
+        return $this;
+    }
 
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }

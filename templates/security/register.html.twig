@@ -28,6 +28,13 @@
         {{ form_errors(registrationForm.plainPassword) }}
       </div>
 
+      {% if recaptcha_site_key is defined and recaptcha_site_key %}
+        <div class="form-group" style="margin-top: 12px;">
+          <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+          <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+        </div>
+      {% endif %}
+
       <button class="btn-primary" type="submit">
         <i class="fa-solid fa-floppy-disk"></i> Créer mon compte
       </button>

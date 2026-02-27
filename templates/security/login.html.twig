@@ -42,13 +42,55 @@
           Se souvenir de moi
         </label>
 
-        <a class="link" href="{{ path('app_register') }}">Créer un compte</a>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; text-align: right;">
+          <a class="link" href="{{ path('app_register') }}">Créer un compte</a>
+          <a class="link" href="{{ path('app_forgot_password') }}">Mot de passe oublié ?</a>
+        </div>
       </div>
 
       <div style="margin-top:16px;">
         <button class="btn-primary" type="submit">
           <i class="fa-solid fa-right-to-bracket"></i> Se connecter
         </button>
+      </div>
+
+      <input type="hidden" name="face_verified" id="faceVerifiedInput" value="0">
+
+      <div style="margin-top:10px;">
+        <button
+          id="openCameraButton"
+          type="button"
+          class="btn-primary"
+          style="background:#0d8a72;"
+        >
+          <i class="fa-solid fa-camera"></i> Ouvrir la caméra
+        </button>
+      </div>
+
+      <div class="form-group" id="cameraContainer" style="display:none; margin-top:8px;">
+        <video
+          id="loginCameraPreview"
+          autoplay
+          playsinline
+          style="width:100%; border-radius:10px; border:1px solid var(--medium-gray); background:#000;"
+        ></video>
+        <p class="hint" id="cameraHint" style="margin-top:6px; margin-bottom:2px;">
+          La caméra sert uniquement à un aperçu vidéo. Aucune image n'est stockée.
+        </p>
+        <p class="hint" id="cameraPrivacy" style="margin-top:0; font-weight:600;">
+          Vos données restent privées.
+        </p>
+        <div style="margin-top:8px; display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap;">
+          <button
+            id="verifyFaceButton"
+            type="button"
+            class="btn-primary"
+            style="background:#1a73e8; flex:1; min-width:160px;"
+          >
+            <i class="fa-solid fa-user-check"></i> Vérifier mon visage
+          </button>
+          <span id="faceStatus" class="hint" style="flex:1; min-width:160px;"></span>
+        </div>
       </div>
 
       <p class="hint">
@@ -60,4 +102,163 @@
       </div>
     </form>
   </div>
+{% block javascripts %}
+  <script>
+    (function () {
+      const openCameraButton = document.getElementById('openCameraButton');
+      const cameraContainer = document.getElementById('cameraContainer');
+      const video = document.getElementById('loginCameraPreview');
+      const cameraHint = document.getElementById('cameraHint');
+      const cameraPrivacy = document.getElementById('cameraPrivacy');
+      const verifyFaceButton = document.getElementById('verifyFaceButton');
+      const faceStatus = document.getElementById('faceStatus');
+      const faceVerifiedInput = document.getElementById('faceVerifiedInput');
+      const emailInput = document.getElementById('inputEmail');
+      let currentStream = null;
+
+      if (!openCameraButton || !cameraContainer || !video) {
+        return;
+      }
+
+      function updateButton(opened) {
+        if (opened) {
+          openCameraButton.innerHTML = '<i class="fa-solid fa-camera-slash"></i> Fermer la caméra';
+        } else {
+          openCameraButton.innerHTML = '<i class="fa-solid fa-camera"></i> Ouvrir la caméra';
+        }
+      }
+
+      function updateTexts() {
+        if (cameraHint) {
+          cameraHint.textContent = "La caméra sert uniquement à un aperçu vidéo. Aucune image n'est stockée.";
+        }
+        if (cameraPrivacy) {
+          cameraPrivacy.textContent = "Vos données restent privées.";
+        }
+      }
+
+      async function openCamera() {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          currentStream = stream;
+          video.srcObject = stream;
+          cameraContainer.style.display = 'block';
+          updateButton(true);
+          updateTexts();
+        } catch (e) {
+          console.error('Erreur lors de l\'ouverture de la caméra', e);
+        }
+      }
+
+      function closeCamera() {
+        if (currentStream) {
+          currentStream.getTracks().forEach(function (track) {
+            track.stop();
+          });
+          currentStream = null;
+        }
+        video.srcObject = null;
+        cameraContainer.style.display = 'none';
+        updateButton(false);
+        updateTexts();
+      }
+
+      openCameraButton.addEventListener('click', function () {
+        if (currentStream) {
+          closeCamera();
+        } else {
+          if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            openCamera();
+          } else {
+            console.warn('API getUserMedia non disponible dans ce navigateur.');
+          }
+        }
+      });
+
+      window.addEventListener('beforeunload', function () {
+        if (currentStream) {
+          currentStream.getTracks().forEach(function (track) {
+            track.stop();
+          });
+        }
+      });
+
+      async function verifyFace() {
+        if (!video || !emailInput) {
+          return;
+        }
+
+        const email = (emailInput.value || '').trim();
+        if (!email) {
+          if (faceStatus) {
+            faceStatus.textContent = 'Veuillez saisir votre email avant la vérification.';
+          }
+          return;
+        }
+
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            return;
+          }
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+          if (faceStatus) {
+            faceStatus.textContent = 'Vérification en cours...';
+          }
+          if (faceVerifiedInput) {
+            faceVerifiedInput.value = '0';
+          }
+
+          const response = await fetch('{{ path('app_face_verify') }}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+              email: email,
+              image: dataUrl
+            })
+          });
+
+          const data = await response.json();
+          const match = !!(data && data.match);
+
+          if (match) {
+            if (faceStatus) {
+              faceStatus.textContent = 'Visage vérifié avec succès.';
+            }
+            if (faceVerifiedInput) {
+              faceVerifiedInput.value = '1';
+            }
+          } else {
+            if (faceStatus) {
+              faceStatus.textContent = 'La vérification du visage a échoué.';
+            }
+            if (faceVerifiedInput) {
+              faceVerifiedInput.value = '0';
+            }
+          }
+        } catch (e) {
+          console.error(e);
+          if (faceStatus) {
+            faceStatus.textContent = 'Erreur lors de la vérification du visage.';
+          }
+          if (faceVerifiedInput) {
+            faceVerifiedInput.value = '0';
+          }
+        }
+      }
+
+      if (verifyFaceButton) {
+        verifyFaceButton.addEventListener('click', verifyFace);
+      }
+    })();
+  </script>
+{% endblock %}
 {% endblock %}

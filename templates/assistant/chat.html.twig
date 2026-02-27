@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assistant médical | MediLink</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #1a73e8;
+      --secondary-color: #0d8a72;
+      --bg: #f1f3f4;
+      --white: #ffffff;
+      --text: #202124;
+      --muted: #5f6368;
+      --border: #dadce0;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #e8f0fe, #ffffff);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .topbar{
+      background: var(--white);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 14px 0;
+    }
+    .container{
+      width:100%;
+      max-width:1100px;
+      margin:0 auto;
+      padding:0 20px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      font-family:'Poppins', sans-serif;
+      font-weight:700;
+      font-size:1.3rem;
+      color: var(--text);
+    }
+    .brand i{ color:var(--primary-color); font-size:1.6rem; }
+    .brand span{ color:var(--secondary-color); }
+    .assistant-wrap{
+      flex:1;
+      display:flex;
+      justify-content:center;
+      padding: 32px 12px;
+    }
+    .assistant-card{
+      width:100%;
+      max-width: 840px;
+      background: var(--white);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+      border-top:4px solid var(--secondary-color);
+    }
+    .assistant-header{
+      padding: 16px 20px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .assistant-title{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .assistant-avatar{
+      width:40px; height:40px;
+      border-radius:50%;
+      background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));
+      display:flex; align-items:center; justify-content:center;
+      color:#fff;
+      font-size:20px;
+      font-weight:600;
+      font-family:'Poppins', sans-serif;
+    }
+    .assistant-header-text h1{
+      font-size:1.2rem;
+      margin-bottom:2px;
+    }
+    .assistant-header-text p{
+      font-size:0.9rem;
+      color:var(--muted);
+    }
+    .assistant-body{
+      display:flex;
+      flex-direction:column;
+      height: 520px;
+      max-height: calc(100vh - 170px);
+    }
+    .messages{
+      flex:1;
+      padding: 18px 18px 6px;
+      overflow-y:auto;
+      background: #f8f9fb;
+    }
+    .message-row{
+      display:flex;
+      margin-bottom:10px;
+    }
+    .message-row.user{
+      justify-content:flex-end;
+    }
+    .bubble{
+      max-width: 75%;
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size:0.95rem;
+      line-height:1.4;
+    }
+    .bubble.user{
+      background: var(--primary-color);
+      color:#fff;
+      border-bottom-right-radius: 4px;
+    }
+    .bubble.assistant{
+      background:#ffffff;
+      border:1px solid var(--border);
+      color:var(--text);
+      border-bottom-left-radius:4px;
+    }
+    .meta{
+      font-size:0.75rem;
+      color:var(--muted);
+      margin-bottom:2px;
+    }
+    .assistant-footer{
+      padding: 10px 14px 14px;
+      border-top:1px solid var(--border);
+      background:#fff;
+    }
+    .input-row{
+      display:flex;
+      align-items:flex-end;
+      gap:8px;
+    }
+    .input-row textarea{
+      flex:1;
+      resize:none;
+      min-height:40px;
+      max-height:90px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      padding:8px 10px;
+      font-family:'Roboto',sans-serif;
+      font-size:0.95rem;
+      outline:none;
+    }
+    .input-row textarea:focus{
+      border-color:var(--primary-color);
+      box-shadow:0 0 0 2px rgba(26,115,232,0.16);
+    }
+    .send-btn{
+      border:none;
+      border-radius:999px;
+      padding:10px 14px;
+      background:var(--primary-color);
+      color:#fff;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1rem;
+    }
+    .send-btn[disabled]{
+      opacity:0.6;
+      cursor:not-allowed;
+    }
+    .hint{
+      margin-top:6px;
+      font-size:0.8rem;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .badge-medical{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      background:#e6f4ea;
+      color:var(--secondary-color);
+      padding:3px 8px;
+      border-radius:999px;
+      font-size:0.8rem;
+      font-weight:500;
+    }
+    @media (max-width: 768px) {
+      .assistant-card{
+        border-radius:0;
+        max-width:100%;
+      }
+      .assistant-body{
+        height: calc(100vh - 150px);
+        max-height:none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="container" style="display:flex; align-items:center; justify-content:space-between;">
+      <div class="brand">
+        <i class="fas fa-heartbeat"></i>
+        <div>Medi<span>Link</span></div>
+      </div>
+      <div>
+        <a href="{{ path('app_login') }}" style="font-size:0.9rem; color:#1a73e8; text-decoration:none;">
+          <i class="fa-solid fa-arrow-left"></i> Retour à MediLink
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="assistant-wrap">
+    <div class="assistant-card">
+      <div class="assistant-header">
+        <div class="assistant-title">
+          <div class="assistant-avatar">M</div>
+          <div class="assistant-header-text">
+            <h1>Assistant médical MediLink</h1>
+            <p>Réponses uniquement sur la santé, vos rendez-vous et la plateforme MediLink.</p>
+          </div>
+        </div>
+        <div class="badge-medical">
+          <i class="fa-solid fa-stethoscope"></i>
+          Mode médical
+        </div>
+      </div>
+
+      <div class="assistant-body">
+        <div id="messages" class="messages">
+          <div class="message-row assistant">
+            <div>
+              <div class="meta">Assistant MediLink</div>
+              <div class="bubble assistant">
+                Bonjour, je suis l'assistant médical de MediLink. Posez-moi vos questions liées à la santé, à vos rendez-vous médicaux ou à l'utilisation de la plateforme MediLink.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="assistant-footer">
+          <div class="input-row">
+            <textarea id="chat-input" rows="1" placeholder="Écrivez votre question médicale ici..."></textarea>
+            <button id="chat-send" class="send-btn" type="button">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </div>
+          <div class="hint">
+            <i class="fa-solid fa-shield-heart"></i>
+            L'assistant ne répond qu'à des questions médicales ou liées à MediLink.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const messagesEl = document.getElementById('messages');
+      const inputEl = document.getElementById('chat-input');
+      const sendBtn = document.getElementById('chat-send');
+      let isSending = false;
+
+      function scrollToBottom() {
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function addMessage(content, role) {
+        const row = document.createElement('div');
+        row.className = 'message-row ' + (role === 'user' ? 'user' : 'assistant');
+
+        const wrapper = document.createElement('div');
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.textContent = role === 'user' ? 'Vous' : 'Assistant MediLink';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble ' + (role === 'user' ? 'user' : 'assistant');
+        bubble.textContent = content;
+
+        wrapper.appendChild(meta);
+        wrapper.appendChild(bubble);
+        row.appendChild(wrapper);
+        messagesEl.appendChild(row);
+        scrollToBottom();
+      }
+
+      function setSending(state) {
+        isSending = state;
+        sendBtn.disabled = state;
+      }
+
+      async function sendMessage() {
+        const text = (inputEl.value || '').trim();
+        if (!text || isSending) {
+          return;
+        }
+
+        addMessage(text, 'user');
+        inputEl.value = '';
+        setSending(true);
+
+        try {
+          const response = await fetch('{{ path('app_assistant_message') }}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ message: text })
+          });
+
+          const data = await response.json();
+          const reply = data && data.reply
+            ? data.reply
+            : "Je suis l'assistant médical de MediLink. Une erreur s'est produite, merci de réessayer.";
+
+          addMessage(reply, 'assistant');
+        } catch (e) {
+          console.error(e);
+          addMessage("Je suis l'assistant médical de MediLink. Une erreur réseau s'est produite, merci de réessayer.", 'assistant');
+        } finally {
+          setSending(false);
+        }
+      }
+
+      sendBtn.addEventListener('click', sendMessage);
+
+      inputEl.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          sendMessage();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
+

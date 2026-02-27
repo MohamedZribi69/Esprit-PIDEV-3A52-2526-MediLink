@@ -60,6 +60,11 @@
                             <i class="fas fa-hand-holding-medical me-1"></i> Dons
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ app.request.get('_route') == 'app_assistant' ? 'active' : '' }}" href="{{ path('app_assistant') }}">
+                            <i class="fas fa-robot me-1"></i> Assistant médical
+                        </a>
+                    </li>
                 </ul>
                 
                 <div class="d-flex align-items-center gap-2">
