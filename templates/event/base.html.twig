@@ -22,12 +22,6 @@
       <a href="{{ path('app_events_index') }}" class="{% if app.request.attributes.get('_route') starts with 'app_events' %}active{% endif %}">
         <i class="fa-solid fa-calendar-days"></i> Événements
       </a>
-      <a href="{{ path('patient_rendezvous_index') }}" class="{% if app.request.attributes.get('_route') starts with 'patient_rendezvous' %}active{% endif %}">
-        <i class="fa-solid fa-calendar-check"></i> Rendez-vous
-      </a>
-      <a href="{{ path('patient_medicaments_index') }}" class="{% if app.request.attributes.get('_route') starts with 'patient_medicaments' or app.request.attributes.get('_route') == 'patient_medicament_show' %}active{% endif %}">
-        <i class="fa-solid fa-pills"></i> Médicaments
-      </a>
       <a href="{{ path('front_don_liste') }}" class="{% if app.request.attributes.get('_route') is defined and app.request.attributes.get('_route') starts with 'front_don' %}active{% endif %}">
         <i class="fa-solid fa-hand-holding-medical"></i> Dons
       </a>
