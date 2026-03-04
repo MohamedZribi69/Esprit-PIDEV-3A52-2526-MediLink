@@ -21,7 +21,6 @@ class RegistrationController extends AbstractController
     ): Response {
         $user = new User();
 
-        // valeurs par défaut
         if (method_exists($user, 'setRoles')) {
             $user->setRoles(['ROLE_USER']);
         }

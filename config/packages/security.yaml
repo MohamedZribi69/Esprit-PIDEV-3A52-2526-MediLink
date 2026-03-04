@@ -21,7 +21,7 @@ security:
             custom_authenticator: App\Security\SecurityControllerAuthenticator
             user_checker: App\Security\UserChecker
             logout:
-                path: /logout
+                path: app_logout
             remember_me:
                 secret: '%kernel.secret%'
                 lifetime: 604800
