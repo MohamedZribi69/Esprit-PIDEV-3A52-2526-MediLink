@@ -7,6 +7,7 @@ use App\Form\Medecin\OrdonnanceType;
 use App\Repository\MedicamentRepository;
 use App\Repository\OrdonnanceRepository;
 use App\Repository\UserRepository;
+use App\Service\EmailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,7 +29,7 @@ final class OrdonnanceController extends AbstractController
     }
 
     #[Route('/ordonnances/new', name: 'medecin_ordonnances_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em, UserRepository $userRepo, MedicamentRepository $medicamentRepo): Response
+    public function new(Request $request, EntityManagerInterface $em, UserRepository $userRepo, MedicamentRepository $medicamentRepo, EmailService $emailService): Response
     {
         $ordonnance = new Ordonnance();
         $ordonnance->setMedecin($this->getUser());
@@ -48,6 +49,10 @@ final class OrdonnanceController extends AbstractController
             }
             $em->persist($ordonnance);
             $em->flush();
+            
+            // Envoyer notification email à tous les admins
+            $this->sendOrdonnanceNotification($ordonnance, $emailService, $userRepo);
+            
             $this->addFlash('success', 'Ordonnance créée.');
             return $this->redirectToRoute('medecin_ordonnances_index');
         }
@@ -113,6 +118,37 @@ final class OrdonnanceController extends AbstractController
         $em->flush();
         $this->addFlash('success', 'Ordonnance supprimée.');
         return $this->redirectToRoute('medecin_ordonnances_index');
+    }
+
+    private function sendOrdonnanceNotification(Ordonnance $ordonnance, EmailService $emailService, UserRepository $userRepo): void
+    {
+        try {
+            $medecin = $ordonnance->getMedecin();
+            $patient = $ordonnance->getPatient();
+            
+            $medicamentsList = '<ul>';
+            foreach ($ordonnance->getOrdonnanceMedicaments() as $om) {
+                $medicamentsList .= '<li>' . htmlspecialchars($om->getMedicament()->getNom()) . ' (Quantité: ' . htmlspecialchars((string)$om->getQuantite()) . ')</li>';
+            }
+            $medicamentsList .= '</ul>';
+            
+            $doctorName = $medecin->getFullName();
+            $patientName = $patient->getFullName();
+            
+            // Envoyer l'email à tous les admins
+            $admins = $userRepo->findAdmins();
+            
+            foreach ($admins as $admin) {
+                $emailService->sendOrdonnanceNotification(
+                    $doctorName,
+                    $patientName,
+                    $medicamentsList,
+                    $admin->getEmail()
+                );
+            }
+        } catch (\Exception $e) {
+            error_log('Email notification error: ' . $e->getMessage());
+        }
     }
 
     #[Route('/medicaments', name: 'medecin_medicaments_index', methods: ['GET'])]

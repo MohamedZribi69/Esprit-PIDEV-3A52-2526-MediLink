@@ -5,8 +5,10 @@ namespace App\Controller\Admin;
 use App\Entity\Medicament;
 use App\Form\Admin\MedicamentType;
 use App\Repository\MedicamentRepository;
+use App\Service\GeminiService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -82,5 +84,28 @@ final class MedicamentAdminController extends AbstractController
         $em->flush();
         $this->addFlash('success', 'Médicament supprimé.');
         return $this->redirectToRoute('admin_medicaments_index');
+    }
+
+    #[Route('/api/generer-description', name: 'admin_medicaments_generer_description', methods: ['POST'])]
+    public function genererDescription(Request $request, GeminiService $geminiService): JsonResponse
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+            $nom = $data['nom'] ?? '';
+
+            if (empty($nom)) {
+                return $this->json(['error' => 'Le nom du médicament est requis.'], 400);
+            }
+
+            $result = $geminiService->genererDescriptionMedicament($nom);
+
+            if (!$result['success']) {
+                return $this->json(['error' => $result['error'] ?? 'Erreur inconnue'], 500);
+            }
+
+            return $this->json(['description' => $result['description']]);
+        } catch (\Throwable $e) {
+            return $this->json(['error' => 'Erreur serveur: ' . $e->getMessage()], 500);
+        }
     }
 }
