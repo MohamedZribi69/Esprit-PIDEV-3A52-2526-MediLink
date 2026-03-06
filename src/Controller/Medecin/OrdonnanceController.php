@@ -3,10 +3,12 @@
 namespace App\Controller\Medecin;
 
 use App\Entity\Ordonnance;
+use App\Entity\User;
 use App\Form\Medecin\OrdonnanceType;
 use App\Repository\MedicamentRepository;
 use App\Repository\OrdonnanceRepository;
 use App\Repository\UserRepository;
+use App\Service\EmailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,17 +23,31 @@ final class OrdonnanceController extends AbstractController
     #[Route('/ordonnances', name: 'medecin_ordonnances_index', methods: ['GET'])]
     public function index(OrdonnanceRepository $repo): Response
     {
-        $ordonnances = $repo->findByMedecin($this->getUser());
+        $medecin = $this->getUser();
+        if (!$medecin instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+        $ordonnances = $repo->findByMedecin($medecin);
         return $this->render('medecin/ordonnance/index.html.twig', [
             'ordonnances' => $ordonnances,
         ]);
     }
 
     #[Route('/ordonnances/new', name: 'medecin_ordonnances_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em, UserRepository $userRepo, MedicamentRepository $medicamentRepo): Response
+    public function new(
+        Request $request,
+        EntityManagerInterface $em,
+        UserRepository $userRepo,
+        MedicamentRepository $medicamentRepo,
+        EmailService $emailService
+    ): Response
     {
+        $medecin = $this->getUser();
+        if (!$medecin instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
         $ordonnance = new Ordonnance();
-        $ordonnance->setMedecin($this->getUser());
+        $ordonnance->setMedecin($medecin);
 
         $form = $this->createForm(OrdonnanceType::class, $ordonnance, [
             'patients' => $userRepo->findPatients(),
@@ -48,6 +64,29 @@ final class OrdonnanceController extends AbstractController
             }
             $em->persist($ordonnance);
             $em->flush();
+
+            // Construire une liste HTML des médicaments pour l'e-mail
+            $medicamentsHtml = '<ul>';
+            foreach ($ordonnance->getOrdonnanceMedicaments() as $om) {
+                $m = $om->getMedicament();
+                $nom = $m ? $m->getNom() : '';
+                $medicamentsHtml .= sprintf(
+                    '<li><strong>%s</strong> (Quantité : %d)</li>',
+                    htmlspecialchars($nom, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+                    $om->getQuantite()
+                );
+            }
+            $medicamentsHtml .= '</ul>';
+
+            $doctor = $ordonnance->getMedecin();
+            $patient = $ordonnance->getPatient();
+            $doctorName = $doctor?->getFullName() ?? $doctor?->getEmail() ?? 'Inconnu';
+            $patientName = $patient?->getFullName() ?? $patient?->getEmail() ?? 'Inconnu';
+
+            if (!$emailService->sendOrdonnanceNotification($doctorName, $patientName, $medicamentsHtml)) {
+                $this->addFlash('warning', 'Ordonnance créée, mais la notification par e-mail à l\'administrateur n\'a pas pu être envoyée.');
+            }
+
             $this->addFlash('success', 'Ordonnance créée.');
             return $this->redirectToRoute('medecin_ordonnances_index');
         }

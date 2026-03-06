@@ -19,7 +19,7 @@ class Ordonnance
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Assert\NotNull]
-    private ?\DateTimeInterface $dateCreation = null;
+    private \DateTimeInterface $dateCreation;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $instructions = null;
@@ -50,7 +50,7 @@ class Ordonnance
         return $this->id;
     }
 
-    public function getDateCreation(): ?\DateTimeInterface
+    public function getDateCreation(): \DateTimeInterface
     {
         return $this->dateCreation;
     }

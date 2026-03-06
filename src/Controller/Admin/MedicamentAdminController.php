@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\Medicament;
 use App\Form\Admin\MedicamentType;
 use App\Repository\MedicamentRepository;
+use App\Service\GeminiService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,6 +30,22 @@ final class MedicamentAdminController extends AbstractController
             'medicaments' => $medicaments,
             'q' => $q,
         ]);
+    }
+
+    #[Route('/api/generate-description', name: 'admin_medicaments_generate_description', methods: ['GET', 'POST'])]
+    public function generateDescription(Request $request, GeminiService $gemini): Response
+    {
+        $nom = $request->request->get('nom') ?? $request->query->get('nom', '');
+        $nom = is_string($nom) ? trim($nom) : '';
+        if ($nom === '') {
+            return $this->json(['description' => '', 'error' => 'Nom manquant'], 400);
+        }
+        $result = $gemini->genererDescriptionMedicament($nom);
+        if ($result['success'] && $result['description'] !== null) {
+            return $this->json(['description' => $result['description']]);
+        }
+
+        return $this->json(['description' => '', 'error' => $result['error'] ?? 'Génération impossible'], 503);
     }
 
     #[Route('/new', name: 'admin_medicaments_new', methods: ['GET', 'POST'])]

@@ -2,37 +2,11 @@
 
 namespace App\Service;
 
-use Symfony\Contracts\HttpClient\HttpClientInterface;
-
 /**
- * Génère une description d'événement à partir du titre via l'API Hugging Face (Router).
+ * Génère une description d'événement à partir du titre, sans appel externe.
  */
 final class EventDescriptionGenerator
 {
-    /**
-     * Endpoint OpenAI-compatible via le router Hugging Face.
-     * Documentation : https://huggingface.co/docs/api-inference/tasks/chat-completion
-     */
-    private const HF_CHAT_COMPLETIONS_URL = 'https://router.huggingface.co/v1/chat/completions';
-
-    /**
-     * Modèle gratuit disponible sur le router Hugging Face.
-     * Llama-3.1-8B-Instruct est disponible pour les comptes gratuits.
-     */
-    private const MODEL_ID = 'meta-llama/Llama-3.1-8B-Instruct';
-    private const MAX_NEW_TOKENS = 150;
-    private const TIMEOUT = 60;
-
-    public function __construct(
-        private readonly HttpClientInterface $httpClient,
-        private readonly ?string $huggingfaceApiKey = null,
-    ) {
-    }
-
-    /**
-     * Génère une courte description en français pour un événement à partir de son titre.
-     * Retourne une chaîne vide en cas d'erreur ou si la clé API n'est pas configurée.
-     */
     public function generateFromTitle(string $title): string
     {
         $title = trim($title);
@@ -40,57 +14,45 @@ final class EventDescriptionGenerator
             return '';
         }
 
-        if ($this->huggingfaceApiKey === null || $this->huggingfaceApiKey === '') {
-            return '';
-        }
+        // Nettoyer et tronquer le titre pour l'intégrer proprement dans le texte
+        $safeTitle = mb_substr($title, 0, 120);
 
-        try {
-            $response = $this->httpClient->request('POST', self::HF_CHAT_COMPLETIONS_URL, [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $this->huggingfaceApiKey,
-                    'Content-Type' => 'application/json',
-                ],
-                'json' => [
-                    'model' => self::MODEL_ID,
-                    'messages' => [
-                        [
-                            'role' => 'system',
-                            'content' => 'Tu es un assistant qui rédige des descriptions courtes et professionnelles pour des événements médicaux en français. Réponds uniquement avec la description, sans introduction ni explication supplémentaire.',
-                        ],
-                        [
-                            'role' => 'user',
-                            'content' => sprintf(
-                                'Écris une description courte (2 à 3 phrases) en français pour un événement intitulé : %s.',
-                                $title
-                            ),
-                        ],
-                    ],
-                    'max_tokens' => self::MAX_NEW_TOKENS,
-                    'temperature' => 0.7,
-                ],
-                'timeout' => self::TIMEOUT,
-            ]);
+        $types = [
+            "atelier interactif",
+            "conférence",
+            "session d'information",
+            "rencontre santé",
+            "atelier de sensibilisation",
+        ];
 
-            $status = $response->getStatusCode();
-            $data = $response->toArray(false);
+        $objectifs = [
+            "mieux comprendre vos enjeux de santé au quotidien",
+            "répondre à vos questions avec une équipe médicale dédiée",
+            "vous donner des conseils concrets et faciles à appliquer",
+            "échanger directement avec des professionnels de santé",
+            "vous accompagner dans la prévention et le suivi de votre santé",
+        ];
 
-            if ($status !== 200) {
-                return '';
-            }
+        $publics = [
+            "patients et leurs proches",
+            "toute personne intéressée par ce sujet",
+            "les patients suivis par nos médecins ainsi que le grand public",
+            "les patients de MediLink et toute personne concernée",
+            "toutes les personnes souhaitant améliorer leur bien‑être",
+        ];
 
-            return $this->extractGeneratedText($data);
-        } catch (\Throwable $e) {
-            return '';
-        }
-    }
+        // Choix "pseudo‑aléatoire" mais déterministe basé sur le titre
+        $hash = crc32($safeTitle);
+        $type = $types[$hash % \count($types)];
+        $objectif = $objectifs[$hash % \count($objectifs)];
+        $public = $publics[$hash % \count($publics)];
 
-    private function extractGeneratedText(array $data): string
-    {
-        // Format OpenAI-compatible : choices[0].message.content
-        if (isset($data['choices'][0]['message']['content']) && is_string($data['choices'][0]['message']['content'])) {
-            return trim($data['choices'][0]['message']['content']);
-        }
-
-        return '';
+        return sprintf(
+            "« %s » est un %s organisé par MediLink pour %s. Cet événement est ouvert à %s et se déroulera dans une ambiance conviviale et professionnelle.",
+            $safeTitle,
+            $type,
+            $objectif,
+            $public
+        );
     }
 }

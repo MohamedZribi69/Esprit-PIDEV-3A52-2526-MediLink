@@ -20,7 +20,7 @@ class CategoriesDons
     #[ORM\Column(length: 100)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 100)]
-    private ?string $nom = null;
+    private string $nom = '';
 
     /** @var Collection<int, Dons> */
     #[ORM\OneToMany(targetEntity: Dons::class, mappedBy: 'categorie')]
@@ -36,7 +36,7 @@ class CategoriesDons
         return $this->id;
     }
 
-    public function getNom(): ?string
+    public function getNom(): string
     {
         return $this->nom;
     }

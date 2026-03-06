@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\DTO\MedecinRdvCountDTO;
 use App\Entity\RendezVous;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -172,19 +173,19 @@ class RendezVousRepository extends ServiceEntityRepository
      */
     public function findHotMedecinIds(\DateTimeInterface $from, int $minCount = 10): array
     {
-        $rows = $this->createQueryBuilder('r')
+        $results = $this->createQueryBuilder('r')
+            ->select('NEW App\DTO\MedecinRdvCountDTO(m.id, COUNT(r.id))')
             ->join('r.disponibilite', 'd')
             ->join('d.medecin', 'm')
-            ->select('m.id AS medecin_id, COUNT(r.id) AS rdv_count')
-            ->andWhere('r.dateHeure >= :from')
+            ->where('r.dateHeure >= :from')
             ->setParameter('from', $from)
-            ->groupBy('medecin_id')
+            ->groupBy('m.id')
             ->having('COUNT(r.id) >= :minCount')
             ->setParameter('minCount', $minCount)
-            ->orderBy('rdv_count', 'DESC')
+            ->orderBy('COUNT(r.id)', 'DESC')
             ->getQuery()
-            ->getArrayResult();
+            ->getResult();
 
-        return array_map(static fn (array $row): int => (int) $row['medecin_id'], $rows);
+        return array_map(static fn (MedecinRdvCountDTO $dto): int => $dto->medecinId, $results);
     }
 }

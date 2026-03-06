@@ -91,12 +91,23 @@ final class RendezVousService
     }
 
     /**
-     * Confirme un rendez-vous (changement de statut).
+     * Confirme un rendez-vous (changement de statut) et envoie un e-mail au patient.
      */
     public function confirmerRendezVous(RendezVous $rendezVous): void
     {
         $rendezVous->setStatut(RendezVous::STATUT_CONFIRME);
         $this->em->flush();
+
+        try {
+            $this->mailerService->envoyerAcceptationRendezVous($rendezVous);
+        } catch (\Throwable $e) {
+            if ($this->logger) {
+                $this->logger->warning('Impossible d\'envoyer l\'email d\'acceptation du rendez-vous.', [
+                    'rdv_id' => $rendezVous->getId(),
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
     }
 
     /**

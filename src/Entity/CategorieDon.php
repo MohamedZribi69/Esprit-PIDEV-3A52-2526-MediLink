@@ -19,7 +19,7 @@ class CategorieDon
     #[ORM\Column(length: 50)]
     #[Assert\NotBlank(message: 'Le nom est obligatoire.')]
     #[Assert\Length(max: 50)]
-    private ?string $nom = null;
+    private string $nom = '';
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
@@ -43,7 +43,7 @@ class CategorieDon
         return $this->id;
     }
 
-    public function getNom(): ?string
+    public function getNom(): string
     {
         return $this->nom;
     }

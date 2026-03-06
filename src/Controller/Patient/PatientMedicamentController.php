@@ -4,6 +4,7 @@ namespace App\Controller\Patient;
 
 use App\Repository\MedicamentRepository;
 use App\Repository\OrdonnanceRepository;
+use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -31,6 +32,9 @@ final class PatientMedicamentController extends AbstractController
         }
 
         $patient = $this->getUser();
+        if (!$patient instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
         $ordonnances = $ordRepo->findByPatientAndMedicament($patient, $id);
 
         return $this->render('patient/medicament_show.html.twig', [

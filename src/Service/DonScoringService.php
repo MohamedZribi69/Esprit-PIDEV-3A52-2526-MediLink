@@ -195,15 +195,12 @@ class DonScoringService
      */
     private function fallbackNeutre(string $reason = 'no_key'): array
     {
-        $labels = [
-            'no_key' => 'En attente de validation manuelle (IA non configurée)',
-            'rate_limit' => 'En attente de validation manuelle (limite de requêtes atteinte, réessayez dans un moment)',
-            'error' => 'En attente de validation manuelle (service temporairement indisponible, réessayez plus tard)',
-        ];
+        // Message volontairement neutre, sans détails techniques :
+        // on indique juste qu'une validation manuelle est nécessaire.
         return [
             'score' => 50,
             'decision' => 'en_attente',
-            'decisionLabel' => $labels[$reason] ?? $labels['error'],
+            'decisionLabel' => 'En attente de validation manuelle',
         ];
     }
 }

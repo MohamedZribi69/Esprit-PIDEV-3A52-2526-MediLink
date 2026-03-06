@@ -149,7 +149,7 @@ class DonCategorySuggestionService
         ];
         if ($best === null) {
             foreach ($keywordToSearch as $keyword => $searchTerms) {
-                $terms = is_array($searchTerms) ? $searchTerms : [$searchTerms];
+                $terms = $searchTerms;
                 if (mb_strlen($keyword) >= 2 && mb_strpos($descLower, $keyword) !== false) {
                     foreach ($categories as $c) {
                         $nomLower = mb_strtolower($c->getNom() ?? '', 'UTF-8');

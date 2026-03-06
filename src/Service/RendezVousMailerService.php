@@ -49,4 +49,33 @@ final class RendezVousMailerService
 
         $this->mailer->send($email);
     }
+
+    /**
+     * Envoie l’e-mail au patient lorsque le médecin (ou l’admin) accepte / confirme le rendez-vous.
+     * Ne fait rien si le patient n’a pas d’email.
+     */
+    public function envoyerAcceptationRendezVous(RendezVous $rendezVous): void
+    {
+        $patient = $rendezVous->getPatient();
+        if (!$patient || !$patient->getEmail()) {
+            return;
+        }
+
+        $dispo = $rendezVous->getDisponibilite();
+        $medecin = $dispo?->getMedecin();
+
+        $email = (new TemplatedEmail())
+            ->from(new Address(self::FROM_EMAIL, self::FROM_NAME))
+            ->to($patient->getEmail())
+            ->subject('MediLink – Votre rendez-vous a été accepté')
+            ->htmlTemplate('emails/acceptation_rendezvous.html.twig')
+            ->context([
+                'patientName' => $patient->getFullName() ?? 'Patient',
+                'dateHeure' => $rendezVous->getDateHeure(),
+                'medecinName' => $medecin ? $medecin->getFullName() : 'Médecin',
+                'motif' => $rendezVous->getMotif() ?? '',
+            ]);
+
+        $this->mailer->send($email);
+    }
 }

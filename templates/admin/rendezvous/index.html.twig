@@ -64,6 +64,14 @@
             </td>
             <td>
               <div class="actions">
+                {% if r.statut != 'confirme' %}
+                  <form method="post" action="{{ path('admin_rendezvous_confirm', { id: r.id }) }}" style="display:inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('confirm_rendezvous_' ~ r.id) }}">
+                    <button class="icon-btn" title="Confirmer" type="submit">
+                      <i class="fa-solid fa-check"></i>
+                    </button>
+                  </form>
+                {% endif %}
                 <a class="btn-calendar-icon" href="{{ path('calendar_rendezvous', { id: r.id }) }}" title="Ajouter au calendrier">
                   <i class="fa-solid fa-calendar-plus"></i>
                 </a>

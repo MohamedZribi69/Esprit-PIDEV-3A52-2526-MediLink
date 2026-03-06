@@ -35,7 +35,7 @@ class DonController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $user = $this->getUser();
-            if ($user) {
+            if ($user instanceof \App\Entity\User) {
                 $don->setDonateur($user);
             }
             $entityManager->persist($don);

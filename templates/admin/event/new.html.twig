@@ -14,12 +14,24 @@
     <div style="padding: 20px;">
       <div class="form-group">
         <label for="{{ form.titre.vars.id }}">Titre</label>
-        {{ form_widget(form.titre, { attr: { class: 'input' } }) }}
+        {{ form_widget(form.titre, { attr: { class: 'input', id: form.titre.vars.id } }) }}
         {{ form_errors(form.titre) }}
       </div>
       <div class="form-group">
         <label for="{{ form.description.vars.id }}">Description</label>
-        {{ form_widget(form.description, { attr: { class: 'input' } }) }}
+        <div style="display:flex; gap:8px; align-items:flex-start;">
+          <div style="flex:1;">
+            {{ form_widget(form.description, { attr: { class: 'input', rows: 3, id: form.description.vars.id } }) }}
+          </div>
+          <button
+            type="button"
+            class="btn-primary"
+            id="btn-generate-event-description"
+            style="white-space:nowrap; flex-shrink:0;"
+          >
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Générer avec IA
+          </button>
+        </div>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -55,4 +67,50 @@
     {{ form_end(form) }}
   </div>
 </section>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script>
+    (function () {
+      const btn = document.getElementById('btn-generate-event-description');
+      if (!btn) return;
+      const titleInput = document.getElementById('{{ form.titre.vars.id }}');
+      const descInput = document.getElementById('{{ form.description.vars.id }}');
+      const url = '{{ path('admin_events_api_generate_description') }}';
+
+      btn.addEventListener('click', function () {
+        const title = (titleInput?.value || '').trim();
+        if (!title) {
+          alert('Veuillez saisir un titre avant de générer la description.');
+          return;
+        }
+        btn.disabled = true;
+        btn.textContent = 'Génération…';
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: 'title=' + encodeURIComponent(title)
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.description) {
+              if (descInput) descInput.value = data.description;
+            } else {
+              alert(data.error || 'Impossible de générer une description pour le moment.');
+            }
+          })
+          .catch(function () {
+            alert('Erreur lors de l\'appel au service IA.');
+          })
+          .finally(function () {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Générer avec IA';
+          });
+      });
+    })();
+  </script>
 {% endblock %}

@@ -19,7 +19,7 @@ class Medicament
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Le nom est obligatoire.')]
     #[Assert\Length(max: 255)]
-    private ?string $nom = null;
+    private string $nom = '';
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
@@ -43,7 +43,7 @@ class Medicament
         return $this->id;
     }
 
-    public function getNom(): ?string
+    public function getNom(): string
     {
         return $this->nom;
     }

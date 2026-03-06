@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Evenement;
 use App\Entity\Participation;
+use App\Entity\User;
 use App\Form\ParticipationType;
 use App\Repository\EvenementRepository;
 use App\Repository\ParticipationRepository;
@@ -52,7 +53,7 @@ final class EventController extends AbstractController
         ParticipationRepository $participationRepo
     ): Response {
         $user = $this->getUser();
-        if (!$user) {
+        if (!$user instanceof User) {
             return $this->redirectToRoute('app_login');
         }
 

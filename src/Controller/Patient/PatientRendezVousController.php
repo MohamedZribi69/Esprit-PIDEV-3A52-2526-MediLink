@@ -34,10 +34,13 @@ final class PatientRendezVousController extends AbstractController
     ): Response
     {
         $patient = $this->getUser();
+        if (!$patient instanceof \App\Entity\User) {
+            throw $this->createAccessDeniedException();
+        }
         $disponibilites = $dispoRepo->findAvailableForPatient();
 
         $recommendedDispos = [];
-        if ($patient instanceof \App\Entity\User && !empty($disponibilites)) {
+        if (!empty($disponibilites)) {
             $recommendedDispos = $recoService->recommend($patient, $disponibilites, 3);
         }
 
@@ -72,7 +75,11 @@ final class PatientRendezVousController extends AbstractController
         }
 
         try {
-            $rdvService->creerRendezVous($disponibilite, $this->getUser());
+            $patient = $this->getUser();
+            if (!$patient instanceof \App\Entity\User) {
+                throw $this->createAccessDeniedException();
+            }
+            $rdvService->creerRendezVous($disponibilite, $patient);
             $this->addFlash('success', 'Rendez-vous réservé avec succès !');
         } catch (\DomainException $e) {
             $this->addFlash('error', $e->getMessage());

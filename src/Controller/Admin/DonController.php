@@ -283,15 +283,12 @@ class DonController extends AbstractController
 
         $entityManager->flush();
 
-        $message = sprintf(
+        // Message volontairement simplifié : on ne montre plus les détails techniques (401, etc.)
+        $this->addFlash('success', sprintf(
             'Analyse automatique effectuée (score %d/100) : %s.',
             $resultat['score'],
             $resultat['decisionLabel']
-        );
-        if (!empty($resultat['apiError'])) {
-            $message .= ' Détail : ' . $resultat['apiError'];
-        }
-        $this->addFlash('success', $message);
+        ));
 
         return $this->redirectToRoute('admin_don_show', ['id' => $don->getId()]);
     }

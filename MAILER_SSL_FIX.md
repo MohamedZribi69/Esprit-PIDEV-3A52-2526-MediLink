@@ -22,6 +22,14 @@ MAILER_DSN=smtp://votre-email:mot-de-passe-app@smtp.gmail.com:587?verify_peer=0
 
 Puis : `php bin/console cache:clear` et réessayez l’envoi.
 
+**Pour le mot de passe oublié et la création de compte** (envoi via PHPMailer, variables `MAIL_*`) : ajoutez dans `.env` :
+
+```env
+MAIL_VERIFY_PEER=0
+```
+
+Cela désactive la vérification SSL côté PHPMailer. À réserver au **développement local**.
+
 ---
 
 ## Solution 2 : Utiliser le port 465 (SMTPS) au lieu de 587 (STARTTLS)

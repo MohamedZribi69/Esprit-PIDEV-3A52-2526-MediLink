@@ -130,4 +130,19 @@ final class RendezVousAdminController extends AbstractController
         $this->addFlash('success', 'Rendez-vous supprimé.');
         return $this->redirectToRoute('admin_rendezvous_index');
     }
+
+    #[Route('/{id}/confirm', name: 'admin_rendezvous_confirm', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function confirm(RendezVous $rendezVous, Request $request, RendezVousService $rdvService): Response
+    {
+        $token = (string) $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('confirm_rendezvous_' . $rendezVous->getId(), $token)) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $rdvService->confirmerRendezVous($rendezVous);
+
+        $this->addFlash('success', 'Rendez-vous confirmé. Un e-mail a été envoyé au patient.');
+
+        return $this->redirectToRoute('admin_rendezvous_index');
+    }
 }

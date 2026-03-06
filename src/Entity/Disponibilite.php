@@ -24,13 +24,13 @@ class Disponibilite
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
-    private ?\DateTimeInterface $date = null;
+    private \DateTimeInterface $date;
 
     #[ORM\Column(type: Types::TIME_MUTABLE)]
-    private ?\DateTimeInterface $heureDebut = null;
+    private \DateTimeInterface $heureDebut;
 
     #[ORM\Column(type: Types::TIME_MUTABLE)]
-    private ?\DateTimeInterface $heureFin = null;
+    private \DateTimeInterface $heureFin;
 
     #[ORM\Column(length: 20)]
     private string $status = self::STATUS_LIBRE;
@@ -48,17 +48,20 @@ class Disponibilite
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->date = new \DateTime('today');
+        $this->heureDebut = \DateTime::createFromFormat('H:i', '00:00') ?: new \DateTime('00:00');
+        $this->heureFin = \DateTime::createFromFormat('H:i', '01:00') ?: new \DateTime('01:00');
     }
 
     #[Assert\Callback]
     public function validateHeuresEtDate(ExecutionContextInterface $context): void
     {
-        if ($this->heureDebut !== null && $this->heureFin !== null && $this->heureFin <= $this->heureDebut) {
+        if ($this->heureFin <= $this->heureDebut) {
             $context->buildViolation('L\'heure de fin doit être postérieure à l\'heure de début.')
                 ->atPath('heureFin')
                 ->addViolation();
         }
-        if ($this->date !== null && $this->id === null) {
+        if ($this->id === null) {
             $today = (new \DateTimeImmutable('today'))->format('Y-m-d');
             if ($this->date->format('Y-m-d') < $today) {
                 $context->buildViolation('La date doit être aujourd\'hui ou une date future.')
@@ -73,34 +76,34 @@ class Disponibilite
         return $this->id;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getDate(): \DateTimeInterface
     {
         return $this->date;
     }
 
-    public function setDate(?\DateTimeInterface $date): self
+    public function setDate(\DateTimeInterface $date): self
     {
         $this->date = $date;
         return $this;
     }
 
-    public function getHeureDebut(): ?\DateTimeInterface
+    public function getHeureDebut(): \DateTimeInterface
     {
         return $this->heureDebut;
     }
 
-    public function setHeureDebut(?\DateTimeInterface $heureDebut): self
+    public function setHeureDebut(\DateTimeInterface $heureDebut): self
     {
         $this->heureDebut = $heureDebut;
         return $this;
     }
 
-    public function getHeureFin(): ?\DateTimeInterface
+    public function getHeureFin(): \DateTimeInterface
     {
         return $this->heureFin;
     }
 
-    public function setHeureFin(?\DateTimeInterface $heureFin): self
+    public function setHeureFin(\DateTimeInterface $heureFin): self
     {
         $this->heureFin = $heureFin;
         return $this;
@@ -161,9 +164,6 @@ class Disponibilite
     /** Retourne date_heure pour un rendez-vous (combinaison date + heure_debut). */
     public function getDateHeureRendezVous(): ?\DateTimeInterface
     {
-        if ($this->date === null || $this->heureDebut === null) {
-            return null;
-        }
         $d = \DateTime::createFromInterface($this->date);
         $h = \DateTime::createFromInterface($this->heureDebut);
         $d->setTime((int) $h->format('H'), (int) $h->format('i'), (int) $h->format('s'));

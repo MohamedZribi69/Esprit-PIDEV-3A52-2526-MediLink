@@ -4,6 +4,7 @@ namespace App\Controller\Medecin;
 
 use App\Entity\Disponibilite;
 use App\Entity\RendezVous;
+use App\Entity\User;
 use App\Form\Medecin\DisponibiliteMedecinType;
 use App\Repository\DisponibiliteRepository;
 use App\Repository\RendezVousRepository;
@@ -24,6 +25,9 @@ final class MedecinController extends AbstractController
     public function index(Request $request, DisponibiliteRepository $repo, RendezVousRepository $rdvRepo, PaginatorInterface $paginator): Response
     {
         $medecin = $this->getUser();
+        if (!$medecin instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
         $q = (string) $request->query->get('q', '');
         $statutRdv = $request->query->get('statut_rdv');
         $ordreRdv = $request->query->get('ordre_rdv', 'desc');
@@ -63,7 +67,8 @@ final class MedecinController extends AbstractController
     #[Route('/rendez-vous/{id}/confirmer', name: 'medecin_rendezvous_confirmer', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function confirmerRendezVous(RendezVous $rendezVous, RendezVousService $rdvService, Request $request): Response
     {
-        if (!$rdvService->appartientAuMedecin($rendezVous, $this->getUser())) {
+        $medecin = $this->getUser();
+        if (!$medecin instanceof User || !$rdvService->appartientAuMedecin($rendezVous, $medecin)) {
             throw $this->createAccessDeniedException();
         }
         $token = (string) $request->request->get('_token');
@@ -78,7 +83,8 @@ final class MedecinController extends AbstractController
     #[Route('/rendez-vous/{id}/terminer', name: 'medecin_rendezvous_terminer', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function terminerRendezVous(RendezVous $rendezVous, RendezVousService $rdvService, Request $request): Response
     {
-        if (!$rdvService->appartientAuMedecin($rendezVous, $this->getUser())) {
+        $medecin = $this->getUser();
+        if (!$medecin instanceof User || !$rdvService->appartientAuMedecin($rendezVous, $medecin)) {
             throw $this->createAccessDeniedException();
         }
         $token = (string) $request->request->get('_token');
@@ -93,7 +99,8 @@ final class MedecinController extends AbstractController
     #[Route('/rendez-vous/{id}/annuler', name: 'medecin_rendezvous_annuler', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function annulerRendezVous(RendezVous $rendezVous, RendezVousService $rdvService, Request $request): Response
     {
-        if (!$rdvService->appartientAuMedecin($rendezVous, $this->getUser())) {
+        $medecin = $this->getUser();
+        if (!$medecin instanceof User || !$rdvService->appartientAuMedecin($rendezVous, $medecin)) {
             throw $this->createAccessDeniedException();
         }
         $token = (string) $request->request->get('_token');
@@ -108,8 +115,12 @@ final class MedecinController extends AbstractController
     #[Route('/creneaux/new', name: 'medecin_creneaux_new')]
     public function newCreneau(Request $request, DisponibiliteService $dispoService): Response
     {
+        $medecin = $this->getUser();
+        if (!$medecin instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
         $disponibilite = new Disponibilite();
-        $disponibilite->setMedecin($this->getUser());
+        $disponibilite->setMedecin($medecin);
 
         $form = $this->createForm(DisponibiliteMedecinType::class, $disponibilite);
         $form->handleRequest($request);
@@ -132,7 +143,8 @@ final class MedecinController extends AbstractController
     #[Route('/creneaux/{id}/edit', name: 'medecin_creneaux_edit')]
     public function editCreneau(Disponibilite $disponibilite, Request $request, DisponibiliteService $dispoService): Response
     {
-        if (!$dispoService->appartientAuMedecin($disponibilite, $this->getUser())) {
+        $medecin = $this->getUser();
+        if (!$medecin instanceof User || !$dispoService->appartientAuMedecin($disponibilite, $medecin)) {
             throw $this->createAccessDeniedException();
         }
         if (!$dispoService->peutModifier($disponibilite)) {
@@ -162,7 +174,8 @@ final class MedecinController extends AbstractController
     #[Route('/creneaux/{id}', name: 'medecin_creneaux_delete', methods: ['POST'])]
     public function deleteCreneau(Disponibilite $disponibilite, DisponibiliteService $dispoService, Request $request): Response
     {
-        if (!$dispoService->appartientAuMedecin($disponibilite, $this->getUser())) {
+        $medecin = $this->getUser();
+        if (!$medecin instanceof User || !$dispoService->appartientAuMedecin($disponibilite, $medecin)) {
             throw $this->createAccessDeniedException();
         }
         $token = (string) $request->request->get('_token');

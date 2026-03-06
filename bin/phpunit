@@ -1,0 +1,31 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * Script d'exécution des tests PHPUnit (comme dans le document "Travail demandé").
+ * Délègue à vendor/bin/phpunit avec la configuration du projet.
+ */
+
+$projectRoot = dirname(__DIR__);
+$phpunit = $projectRoot . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'phpunit';
+
+if (!is_file($phpunit)) {
+    fwrite(STDERR, "PHPUnit n'est pas installé. Exécutez : composer install\n");
+    exit(1);
+}
+
+$config = $projectRoot . DIRECTORY_SEPARATOR . 'phpunit.xml.dist';
+$args = array_slice($argv, 1);
+if (!in_array('-c', $args, true) && !in_array('--configuration', $args, true) && is_file($config)) {
+    array_unshift($args, '--configuration', $config);
+}
+
+$command = sprintf(
+    '%s %s %s',
+    defined('PHP_BINARY') ? escapeshellarg(PHP_BINARY) : 'php',
+    escapeshellarg($phpunit),
+    implode(' ', array_map('escapeshellarg', $args))
+);
+
+passthru($command, $status);
+exit($status);

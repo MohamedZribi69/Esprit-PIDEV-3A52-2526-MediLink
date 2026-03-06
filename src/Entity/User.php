@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Ignore;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -26,37 +27,34 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Email]
-    private ?string $email = null;
+    private string $email = '';
 
     /** @var list<string> */
     #[ORM\Column(type: Types::JSON)]
     private array $roles = [];
 
     #[ORM\Column]
-    private ?string $password = null;
+    #[Ignore]
+    private string $password = '';
 
     #[ORM\Column(length: 120)]
     #[Assert\NotBlank]
     #[Assert\Length(min: 2, max: 120)]
-    private ?string $fullName = null;
+    private string $fullName = '';
 
     #[ORM\Column(length: 20)]
     #[Assert\Choice([self::STATUS_ACTIVE, self::STATUS_DISABLED])]
-    private string $status = self::STATUS_ACTIVE;
+    private string $status = self::STATUS_DISABLED;
+
+    #[ORM\Column(length: 64, nullable: true)]
+    #[Ignore]
+    private ?string $verificationToken = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
-
-    #[ORM\Column(length: 20, nullable: true)]
-    #[Assert\Choice(['morning', 'afternoon'])]
-    private ?string $preferredTime = null;
-
-    #[ORM\Column(type: Types::INTEGER, nullable: true)]
-    #[Assert\Positive]
-    private ?int $maxDaysAhead = null;
 
     public function __construct()
     {
@@ -66,7 +64,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getId(): ?int { return $this->id; }
 
-    public function getEmail(): ?string { return $this->email; }
+    public function getEmail(): string { return $this->email; }
     public function setEmail(string $email): self { $this->email = mb_strtolower($email); return $this; }
 
     public function getUserIdentifier(): string { return (string) $this->email; }
@@ -89,11 +87,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     public function getPassword(): string { return (string) $this->password; }
-    public function setPassword(string $password): self { $this->password = $password; return $this; }
+    public function setPassword(#[\SensitiveParameter] string $password): self { $this->password = $password; return $this; }
 
     public function eraseCredentials(): void {}
 
-    public function getFullName(): ?string { return $this->fullName; }
+    public function getFullName(): string { return $this->fullName; }
     public function setFullName(string $fullName): self { $this->fullName = $fullName; return $this; }
 
     public function getStatus(): string { return $this->status; }
@@ -101,29 +99,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function isActive(): bool { return $this->status === self::STATUS_ACTIVE; }
 
+    public function getVerificationToken(): ?string
+    {
+        return $this->verificationToken;
+    }
+
+    public function setVerificationToken(#[\SensitiveParameter] ?string $verificationToken): self
+    {
+        $this->verificationToken = $verificationToken;
+        return $this;
+    }
+
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }
     public function touch(): void { $this->updatedAt = new \DateTimeImmutable(); }
-
-    public function getPreferredTime(): ?string
-    {
-        return $this->preferredTime;
-    }
-
-    public function setPreferredTime(?string $preferredTime): self
-    {
-        $this->preferredTime = $preferredTime;
-        return $this;
-    }
-
-    public function getMaxDaysAhead(): ?int
-    {
-        return $this->maxDaysAhead;
-    }
-
-    public function setMaxDaysAhead(?int $maxDaysAhead): self
-    {
-        $this->maxDaysAhead = $maxDaysAhead;
-        return $this;
-    }
 }

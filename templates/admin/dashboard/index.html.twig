@@ -263,4 +263,12 @@
 <script type="text/javascript">
     {{ gc_draw([chart_monthly, chart_by_category, chart_validation_rate, chart_quality_score], ['chart_monthly_dons', 'chart_by_category', 'chart_validation_rate', 'chart_quality_score']) }}
 </script>
+<style>
+    /* Pourcentages bien visibles dans le donut "Dons par catégorie" */
+    #chart_by_category text[fill] {
+        font-size: 14px !important;
+        font-weight: bold !important;
+        fill: #333 !important;
+    }
+</style>
 {% endblock %}

@@ -15,6 +15,7 @@
         "endroid/qr-code": "^5.1",
         "knplabs/knp-paginator-bundle": "^6.10",
         "nucleos/dompdf-bundle": "^4.3",
+        "phpmailer/phpmailer": "*",
         "symfony/asset": "6.4.*",
         "symfony/console": "6.4.*",
         "symfony/dotenv": "6.4.*",
@@ -83,7 +84,11 @@
         }
     },
     "require-dev": {
+        "ahmed-bhs/doctrine-doctor": "^1.0",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^10.5",
         "symfony/maker-bundle": "^1.65",
+        "symfony/phpunit-bridge": "^8.0",
         "symfony/stopwatch": "6.4.*",
         "symfony/web-profiler-bundle": "6.4.*"
     }

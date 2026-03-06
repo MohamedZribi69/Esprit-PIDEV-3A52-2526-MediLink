@@ -54,23 +54,41 @@ class DashboardController extends AbstractController
         $lineChart->getData()->setArrayToDataTable($monthlyRows);
         $lineChart->getOptions()->setHeight(280);
         $lineChart->getOptions()->setColors(['#1cc88a', '#e74a3b', '#f6c23e']);
+        // Courbe lissée (au lieu de segments en triangle)
+        $lineChart->getOptions()->setCurveType('function');
         $lineChart->getOptions()->getVAxis()->setMinValue(0);
-        if (method_exists($lineChart->getOptions()->getVAxis(), 'getViewWindow')) {
-            $lineChart->getOptions()->getVAxis()->getViewWindow()->setMin(0);
-        }
+        $lineChart->getOptions()->getVAxis()->getViewWindow()->setMin(0);
 
         $pieChart = new PieChart();
         $categoryRows = [['Catégorie', 'Dons']];
+        $colors = [];
+        $totalDons = 0;
         foreach ($chartCategoryData as $row) {
-            $categoryRows[] = [$row['nom'], (int) $row['total']];
+            $totalDons += $row->total;
+            if ($row->couleur !== null && $row->couleur !== '') {
+                $colors[] = $row->couleur;
+            }
+        }
+        foreach ($chartCategoryData as $row) {
+            $count = $row->total;
+            $pct = $totalDons > 0 ? round(100 * $count / $totalDons, 1) : 0;
+            $categoryRows[] = [$row->nom . ' (' . $pct . ' %)', $count];
         }
         if (count($categoryRows) === 1) {
-            $categoryRows[] = ['Aucune donnée', 0];
+            $categoryRows[] = ['Aucune donnée (0 %)', 0];
         }
         $pieChart->getData()->setArrayToDataTable($categoryRows);
-        $pieChart->getOptions()->setHeight(280);
-        $pieChart->getOptions()->setPieHole(0.45);
-        $pieChart->getOptions()->getLegend()->setPosition('labeled');
+        $pieChart->getOptions()->setHeight(340);
+        $pieChart->getOptions()->setPieHole(0.4);
+        if (!empty($colors)) {
+            $pieChart->getOptions()->setColors($colors);
+        }
+        $pieChart->getOptions()->setPieSliceText('percentage');
+        $pieChart->getOptions()->setSliceVisibilityThreshold(0);
+        $textStyle = $pieChart->getOptions()->getPieSliceTextStyle();
+        $textStyle->setFontSize(13);
+        $textStyle->setColor('#333333');
+        $pieChart->getOptions()->getLegend()->setPosition('right');
 
         $gaugeValidation = new GaugeChart();
         $gaugeValidation->getData()->setArrayToDataTable([['Label', 'Value'], ['Taux validation', min(100, max(0, $validationRate))]]);

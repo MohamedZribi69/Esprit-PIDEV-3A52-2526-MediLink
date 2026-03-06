@@ -29,7 +29,7 @@ class RendezVous
     private ?Disponibilite $disponibilite = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $dateHeure = null;
+    private \DateTimeInterface $dateHeure;
 
     #[ORM\Column(length: 20)]
     private string $statut = self::STATUT_EN_ATTENTE;
@@ -47,6 +47,7 @@ class RendezVous
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->dateHeure = new \DateTime();
     }
 
     public function getId(): ?int
@@ -65,12 +66,12 @@ class RendezVous
         return $this;
     }
 
-    public function getDateHeure(): ?\DateTimeInterface
+    public function getDateHeure(): \DateTimeInterface
     {
         return $this->dateHeure;
     }
 
-    public function setDateHeure(?\DateTimeInterface $dateHeure): self
+    public function setDateHeure(\DateTimeInterface $dateHeure): self
     {
         $this->dateHeure = $dateHeure;
         return $this;

@@ -1,49 +1,48 @@
-{% extends 'front/base.html.twig' %}
+{% extends 'security/auth_base.html.twig' %}
 
-{% block title %}Inscription - MediLink{% endblock %}
+{% block title %}Inscription | MediLink{% endblock %}
 
-{% block body %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i> Créer un compte</h5>
-                </div>
-                <div class="card-body p-4">
-                    {{ form_start(registrationForm) }}
-                    {{ form_errors(registrationForm) }}
+{% block content %}
+  <div class="auth-head">
+    <h1><i class="fa-solid fa-user-plus"></i> Créer un compte</h1>
+  </div>
 
-                    <div class="mb-3">
-                        {{ form_label(registrationForm.fullName) }}
-                        {{ form_widget(registrationForm.fullName, { attr: { class: 'form-control', placeholder: 'Ex: Mohamed Zribi' } }) }}
-                        {{ form_errors(registrationForm.fullName) }}
-                    </div>
-                    <div class="mb-3">
-                        {{ form_label(registrationForm.email) }}
-                        {{ form_widget(registrationForm.email, { attr: { class: 'form-control', placeholder: 'ex: user@medilink.tn' } }) }}
-                        {{ form_errors(registrationForm.email) }}
-                    </div>
-                    <div class="mb-3">
-                        {{ form_label(registrationForm.plainPassword) }}
-                        {{ form_widget(registrationForm.plainPassword, { attr: { class: 'form-control', placeholder: 'Min 6 caractères' } }) }}
-                        {{ form_errors(registrationForm.plainPassword) }}
-                    </div>
+  <div class="auth-body">
+    {{ form_start(registrationForm) }}
 
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-user-plus me-1"></i> Créer mon compte
-                    </button>
+      <div class="form-group">
+        {{ form_label(registrationForm.fullName) }}
+        {{ form_widget(registrationForm.fullName, { attr: { class: 'input', placeholder: 'Ex: Mohamed Zribi' } }) }}
+        {{ form_errors(registrationForm.fullName) }}
+      </div>
 
-                    <p class="text-center text-muted mt-3 small">
-                        Déjà un compte ? <a href="{{ path('app_login') }}">Se connecter</a>
-                    </p>
-                    {{ form_end(registrationForm) }}
-                </div>
-            </div>
-            <p class="text-center text-muted mt-3 small">
-                <a href="{{ path('front_home') }}"><i class="fas fa-arrow-left me-1"></i> Retour à l'accueil</a>
-            </p>
+      <div class="form-group">
+        {{ form_label(registrationForm.email) }}
+        {{ form_widget(registrationForm.email, { attr: { class: 'input', placeholder: 'ex: user@medilink.tn' } }) }}
+        {{ form_errors(registrationForm.email) }}
+      </div>
+
+      <div class="form-group">
+        {{ form_label(registrationForm.plainPassword) }}
+        {{ form_widget(registrationForm.plainPassword, { attr: { class: 'input', placeholder: 'Min 6 caractères' } }) }}
+        {{ form_errors(registrationForm.plainPassword) }}
+      </div>
+
+      {% if recaptcha_site_key is defined and recaptcha_site_key %}
+        <div class="form-group" style="margin-top: 12px;">
+          <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+          <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
         </div>
-    </div>
-</div>
+      {% endif %}
+
+      <button class="btn-primary" type="submit">
+        <i class="fa-solid fa-floppy-disk"></i> Créer mon compte
+      </button>
+
+      <p class="hint">
+        Déjà un compte ? <a class="link" href="{{ path('app_login') }}">Se connecter</a>
+      </p>
+
+    {{ form_end(registrationForm) }}
+  </div>
 {% endblock %}

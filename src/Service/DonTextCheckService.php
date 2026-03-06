@@ -31,9 +31,14 @@ class DonTextCheckService
 
     /**
      * Suggestions de correction pour expressions courantes (orthographe / grammaire).
-     * Ex. "chaise nouveau" → "une nouvelle chaise", "un chaise on bonne etat" → "une chaise en bon état"
+     * Ex. "chaise nouveau" → "une nouvelle chaise", "bon qualité" → "bonne qualité"
      */
     private array $phraseCorrections = [
+        // Accord avec "qualité" (féminin) : bon → bonne
+        'de bon qualité' => 'de bonne qualité',
+        'de bon qualiti' => 'de bonne qualité',
+        'bon qualité' => 'bonne qualité',
+        'bon qualiti' => 'bonne qualité',
         'un chaise on bonne etat' => 'une chaise en bon état',
         'un chaise en bonne etat' => 'une chaise en bon état',
         'un chaise on bon etat' => 'une chaise en bon état',

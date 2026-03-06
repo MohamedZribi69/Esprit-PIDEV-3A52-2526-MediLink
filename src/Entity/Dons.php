@@ -33,12 +33,12 @@ class Dons
         max: 255,
         maxMessage: 'La description ne peut pas dépasser {{ limit }} caractères.'
     )]
-    private ?string $articleDescription = null;
+    private string $articleDescription = '';
 
     #[ORM\Column(name: 'quantite')]
     #[Assert\NotNull(message: 'La quantité est obligatoire.')]
     #[Assert\Positive(message: 'La quantité doit être un nombre strictement positif.')]
-    private ?int $quantite = null;
+    private int $quantite = 0;
 
     #[ORM\Column(length: 20, nullable: true, name: 'unite')]
     private ?string $unite = 'unités';
@@ -52,10 +52,10 @@ class Dons
 
     #[ORM\Column(length: 20, name: 'niveau_urgence')]
     #[Assert\NotBlank(message: 'Le niveau d\'urgence est obligatoire.')]
-    private ?string $niveauUrgence = 'Moyen';
+    private string $niveauUrgence = 'Moyen';
 
     #[ORM\Column(length: 20, name: 'statut')]
-    private ?string $statut = self::STATUT_EN_ATTENTE;
+    private string $statut = self::STATUT_EN_ATTENTE;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true, name: 'date_expiration')]
     #[Assert\Callback(callback: [self::class, 'validateDateExpiration'])]
@@ -75,7 +75,7 @@ class Dons
     }
 
     #[ORM\Column(name: 'date_soumission')]
-    private ?\DateTimeImmutable $dateSoumission = null;
+    private \DateTimeImmutable $dateSoumission;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true, name: 'id_user', referencedColumnName: 'id', onDelete: 'SET NULL')]
@@ -96,9 +96,9 @@ class Dons
     public function getId(): ?int { return $this->id; }
     public function getCategorie(): ?CategorieDon { return $this->categorie; }
     public function setCategorie(?CategorieDon $categorie): static { $this->categorie = $categorie; return $this; }
-    public function getArticleDescription(): ?string { return $this->articleDescription; }
+    public function getArticleDescription(): string { return $this->articleDescription; }
     public function setArticleDescription(string $articleDescription): static { $this->articleDescription = $articleDescription; return $this; }
-    public function getQuantite(): ?int { return $this->quantite; }
+    public function getQuantite(): int { return $this->quantite; }
     public function setQuantite(int $quantite): static { $this->quantite = $quantite; return $this; }
     public function getUnite(): ?string { return $this->unite; }
     public function setUnite(?string $unite): static { $this->unite = $unite; return $this; }
@@ -106,13 +106,13 @@ class Dons
     public function setDetailsSupplementaires(?string $detailsSupplementaires): static { $this->detailsSupplementaires = $detailsSupplementaires; return $this; }
     public function getEtat(): ?string { return $this->etat; }
     public function setEtat(?string $etat): static { $this->etat = $etat; return $this; }
-    public function getNiveauUrgence(): ?string { return $this->niveauUrgence; }
+    public function getNiveauUrgence(): string { return $this->niveauUrgence; }
     public function setNiveauUrgence(string $niveauUrgence): static { $this->niveauUrgence = $niveauUrgence; return $this; }
-    public function getStatut(): ?string { return $this->statut; }
+    public function getStatut(): string { return $this->statut; }
     public function setStatut(string $statut): static { $this->statut = $statut; return $this; }
     public function getDateExpiration(): ?\DateTimeInterface { return $this->dateExpiration; }
     public function setDateExpiration(?\DateTimeInterface $dateExpiration): static { $this->dateExpiration = $dateExpiration; return $this; }
-    public function getDateSoumission(): ?\DateTimeImmutable { return $this->dateSoumission; }
+    public function getDateSoumission(): \DateTimeImmutable { return $this->dateSoumission; }
     public function setDateSoumission(\DateTimeImmutable $dateSoumission): static { $this->dateSoumission = $dateSoumission; return $this; }
 
     public function getDonateur(): ?User { return $this->donateur; }

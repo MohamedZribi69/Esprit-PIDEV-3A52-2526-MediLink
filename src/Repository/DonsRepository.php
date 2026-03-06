@@ -2,6 +2,8 @@
 
 namespace App\Repository;
 
+use App\DTO\CategoryDonChartDTO;
+use App\DTO\CategoryDonCountDTO;
 use App\Entity\Dons;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -79,14 +81,15 @@ class DonsRepository extends ServiceEntityRepository
     public function getValidCountsByCategory(): array
     {
         return $this->createQueryBuilder('d')
-            ->select('c.id AS id, c.nom AS nom, COUNT(d.id) AS total')
+            ->select('NEW App\DTO\CategoryDonCountDTO(c.id, c.nom, COUNT(d.id))')
             ->join('d.categorie', 'c')
             ->where('d.statut = :statut')
             ->setParameter('statut', Dons::STATUT_VALIDE)
-            ->groupBy('c.id, c.nom')
-            ->orderBy('total', 'DESC')
+            ->groupBy('c.id')
+            ->addGroupBy('c.nom')
+            ->orderBy('COUNT(d.id)', 'DESC')
             ->getQuery()
-            ->getArrayResult();
+            ->getResult();
     }
 
     public function searchForFront(
@@ -145,12 +148,14 @@ class DonsRepository extends ServiceEntityRepository
         }
         $mois = ['', 'Janv.', 'Févr.', 'Mars', 'Avr.', 'Mai', 'Juin', 'Juil.', 'Août', 'Sept.', 'Oct.', 'Nov.', 'Déc.'];
         $out = [];
-        $now = new \DateTimeImmutable();
+        // On construit la série jusqu'au mois précédent (on exclut le mois courant,
+        // souvent incomplet, pour éviter une chute brutale artificielle en fin de courbe).
+        $end = new \DateTimeImmutable('first day of last month');
         for ($i = $months - 1; $i >= 0; $i--) {
-            $dt = $now->modify("-$i months");
+            $dt = $end->modify("-$i months");
             $period = $dt->format('Y-m');
             $m = (int) $dt->format('n');
-            $label = ($mois[$m] ?? $m) . ' ' . $dt->format('Y');
+            $label = $mois[$m] . ' ' . $dt->format('Y');
             $data = $byPeriod[$period] ?? ['total' => 0, 'valides' => 0, 'rejetes' => 0, 'en_attente' => 0];
             $out[] = [
                 'label' => $label,
@@ -166,12 +171,14 @@ class DonsRepository extends ServiceEntityRepository
     public function getCountByCategory(): array
     {
         return $this->createQueryBuilder('d')
-            ->select('c.nom AS nom, c.couleur AS couleur, COUNT(d.id) AS total')
+            ->select('NEW App\DTO\CategoryDonChartDTO(c.nom, c.couleur, COUNT(d.id))')
             ->join('d.categorie', 'c')
-            ->groupBy('c.id, c.nom, c.couleur')
-            ->orderBy('total', 'DESC')
+            ->groupBy('c.id')
+            ->addGroupBy('c.nom')
+            ->addGroupBy('c.couleur')
+            ->orderBy('COUNT(d.id)', 'DESC')
             ->getQuery()
-            ->getArrayResult();
+            ->getResult();
     }
 
     public function getValidationRate(): float

@@ -2,7 +2,7 @@
 
 parameters:
     openai_api_key_default: ''
-    mailer_from: 'noreply@medilink.local'
+    # mailer_from : défini dans config/packages/mailer.yaml depuis MAILER_FROM (obligatoire pour Gmail)
     admin_access_role: ROLE_ADMIN
 
 services:
@@ -32,14 +32,19 @@ services:
         arguments:
             $openaiApiKey: '%env(trim:default:openai_api_key_default:OPENAI_API_KEY)%'
 
-    App\Service\EventDescriptionGenerator:
-        arguments:
-            $huggingfaceApiKey: '%env(trim:default::HUGGINGFACE_API_KEY)%'
-
     App\Service\EventNotificationMailer:
         arguments:
             $fromEmail: '%mailer_from%'
             $projectDir: '%kernel.project_dir%'
             $kernelEnvironment: '%kernel.environment%'
+
+    App\Service\EmailService:
+        arguments:
+            $adminEmail: '%env(default::ADMIN_EMAIL)%'
+            $fromEmail: '%mailer_from%'
+
+    App\Service\GeminiService:
+        arguments:
+            $apiKey: '%env(trim:default::GEMINI_API_KEY)%'
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

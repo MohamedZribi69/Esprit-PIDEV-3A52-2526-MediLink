@@ -36,21 +36,21 @@ final class RendezVousRecommendationService
     }
 
     /**
-     * À terme, ces préférences pourront venir de l'entité User (champs dédiés).
+     * @return array{preferredTime: string, maxDaysAhead: int}
      */
     private function getPatientPreferences(User $patient): array
     {
-        $preferredTime = $patient->getPreferredTime();
-        $maxDaysAhead = $patient->getMaxDaysAhead();
-
         return [
-            'preferredTime' => $preferredTime ?? 'morning', // 'morning' ou 'afternoon'
-            'maxDaysAhead' => $maxDaysAhead ?? 14,        // éviter les créneaux trop lointains
+            // À terme, ces préférences pourront venir de l'entité User (champs dédiés).
+            // Pour l'instant, on utilise des valeurs par défaut.
+            'preferredTime' => 'morning', // 'morning' ou 'afternoon'
+            'maxDaysAhead' => 14,        // éviter les créneaux trop lointains
         ];
     }
 
     /**
      * Calcule un score pour une disponibilité donnée.
+     * @param array{preferredTime: string, maxDaysAhead: int} $prefs
      */
     private function scoreDispo(Disponibilite $dispo, array $prefs): int
     {

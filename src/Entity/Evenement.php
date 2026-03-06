@@ -22,22 +22,22 @@ class Evenement
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Le titre est obligatoire.')]
-    private ?string $titre = null;
+    private string $titre = '';
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     #[Assert\NotBlank(message: 'La date de l\'événement est obligatoire.')]
-    private ?\DateTimeInterface $dateEvenement = null;
+    private \DateTimeInterface $dateEvenement;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Le lieu est obligatoire.')]
-    private ?string $lieu = null;
+    private string $lieu = '';
 
     #[ORM\Column(length: 100)]
     #[Assert\NotBlank(message: 'Le type est obligatoire.')]
-    private ?string $type = null;
+    private string $type = '';
 
     #[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
@@ -53,13 +53,11 @@ class Evenement
     {
         $this->participations = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
+        $this->dateEvenement = new \DateTime('today');
     }
 
     public function validateDateEvenementNotPast(ExecutionContextInterface $context, mixed $payload = null): void
     {
-        if ($this->dateEvenement === null) {
-            return;
-        }
         $today = (new \DateTimeImmutable('today'))->format('Y-m-d');
         $value = $this->dateEvenement->format('Y-m-d');
         if ($value < $today) {
@@ -74,7 +72,7 @@ class Evenement
         return $this->id;
     }
 
-    public function getTitre(): ?string
+    public function getTitre(): string
     {
         return $this->titre;
     }
@@ -96,18 +94,18 @@ class Evenement
         return $this;
     }
 
-    public function getDateEvenement(): ?\DateTimeInterface
+    public function getDateEvenement(): \DateTimeInterface
     {
         return $this->dateEvenement;
     }
 
-    public function setDateEvenement(?\DateTimeInterface $dateEvenement): self
+    public function setDateEvenement(\DateTimeInterface $dateEvenement): self
     {
         $this->dateEvenement = $dateEvenement;
         return $this;
     }
 
-    public function getLieu(): ?string
+    public function getLieu(): string
     {
         return $this->lieu;
     }
@@ -118,7 +116,7 @@ class Evenement
         return $this;
     }
 
-    public function getType(): ?string
+    public function getType(): string
     {
         return $this->type;
     }

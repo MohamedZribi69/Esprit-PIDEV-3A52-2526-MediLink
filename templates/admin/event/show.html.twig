@@ -1,0 +1,29 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Détail de l'événement - MediLink{% endblock %}
+{% block page_title %}Détail de l'événement{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <p class="mb-0 text-secondary">Informations sur l'événement.</p>
+  </div>
+
+  <div class="table-container" style="max-width: 700px;">
+    <div style="padding: 20px;">
+      <h2>{{ evenement.titre }}</h2>
+      <p><strong>Date :</strong> {{ evenement.dateEvenement ? evenement.dateEvenement|date('d/m/Y') : '-' }}</p>
+      <p><strong>Lieu :</strong> {{ evenement.lieu }}</p>
+      <p><strong>Type :</strong> {{ evenement.type }}</p>
+      <p><strong>Description :</strong><br>{{ evenement.description|nl2br }}</p>
+
+      <div style="margin-top: 20px; display: flex; gap: 10px;">
+        <a href="{{ path('admin_events_index') }}" class="btn-secondary">Retour à la liste</a>
+        <a href="{{ path('admin_events_edit', { id: evenement.id }) }}" class="btn-primary">Modifier</a>
+        <a href="{{ path('admin_events_participants', { id: evenement.id }) }}" class="btn-secondary">Participants</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

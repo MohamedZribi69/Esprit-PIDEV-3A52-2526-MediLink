@@ -102,6 +102,7 @@ final class EventAdminController extends AbstractController
     {
         $q = (string) $request->query->get('q', '');
         $ordre = $request->query->get('ordre');
+        $orderDir = (is_string($ordre) && $ordre === 'asc') ? 'ASC' : 'DESC';
 
         $qb = $repo->createQueryBuilder('e');
 
@@ -110,7 +111,6 @@ final class EventAdminController extends AbstractController
                ->setParameter('q', '%' . mb_strtolower($q) . '%');
         }
 
-        $orderDir = ($ordre === 'asc') ? 'ASC' : 'DESC';
         $evenements = $qb->orderBy('e.dateEvenement', $orderDir)->addOrderBy('e.id', $orderDir)->getQuery()->getResult();
 
         $aVenir = $repo->findUpcoming();
@@ -240,7 +240,11 @@ final class EventAdminController extends AbstractController
         $recipientEmails = array_unique($recipientEmails);
 
         if ($recipientEmails !== []) {
-            $eventNotificationMailer->sendEventDeletedNotification($evenement, $recipientEmails);
+            try {
+                $eventNotificationMailer->sendEventDeletedNotification($evenement, $recipientEmails);
+            } catch (\Throwable $e) {
+                $this->addFlash('warning', 'Événement supprimé, mais l\'envoi des e-mails aux participants a échoué : ' . $e->getMessage());
+            }
         }
 
         $em->remove($evenement);
